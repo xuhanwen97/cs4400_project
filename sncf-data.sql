@@ -1,11 +1,11 @@
 use sncf_team3;
 
-insert into user (email, first_name, last_name, password) values
-  ('aharitsa3@gatech.edu', 'Ashwin', 'Haritsa', 'CS4400'),
-  ('xuhanwen97@gmail.com', 'Hanwen', 'Xu', 'is'),
-  ('rubinjoshua4@gmail.com', 'Josh', 'Rubin', 'the'),
-  ('daniellamichelle@gmail.com', 'Daniella', 'Nieves', 'best'),
-  ('simpkins@cc.gatech.edu', 'Chris', 'Simpkins', 'class');
+insert into user (email, password) values
+  ('aharitsa3@gatech.edu','CS4400'),
+  ('xuhanwen97@gmail.com','is'),
+  ('rubinjoshua4@gmail.com','the'),
+  ('daniellamichelle@gmail.com','best'),
+  ('simpkins@cc.gatech.edu','class');
 
 insert into address (line1, line2, city, state, country, post_code) values
   ('1 Place du Général de Gaulle', NULL, 'Metz', NULL, 'France', '57000'),
@@ -77,26 +77,26 @@ insert into stop (stop_id, station_id,train_id,stop_time) values
   (2,2,1,'12:26:00'),
   (3,1,2,'10:15:00'),
   (4,6,2,'11:45:00'),
-  (5,6,11,'11:45:00'),
-  (6,2,11,'17:00:00'),
-  (7,1,3,'09:26:00'),
-  (8,4,3,'10:55:00'),
-  (9,4,4,'15:09:00'),
-  (10,1,4,'17:38:00'),
-  (11,5,5,'18:14:00'),
-  (12,1,5,'18:51:00'),
-  (13,3,5,'19:51:00'),
-  (14,9,6,'10:00:00'),
-  (15,8,6,'12:40:00'),
-  (16,7,7,'15:45:00'),
-  (17,10,7,'19:25:00'),
-  (18,8,8,'12:27:00'),
-  (19,9,8,'15:02:00'),
-  (20,9,9,'15:38:00'),
-  (21,1,9,'23:19:00'),
-  (22,4,10,'17:39:00'),
-  (23,1,10,'19:05:00'),
-  (24,3,10,'19:51:00');
+  (5,6,3,'11:45:00'),
+  (6,2,3,'17:00:00'),
+  (7,1,4,'09:26:00'),
+  (8,4,4,'10:55:00'),
+  (9,4,5,'15:09:00'),
+  (10,1,5,'17:38:00'),
+  (11,5,6,'18:14:00'),
+  (12,1,6,'18:51:00'),
+  (13,3,6,'19:51:00'),
+  (14,9,7,'10:00:00'),
+  (15,8,7,'12:40:00'),
+  (16,7,8,'15:45:00'),
+  (17,10,8,'19:25:00'),
+  (18,8,9,'12:27:00'),
+  (19,9,9,'15:02:00'),
+  (20,9,10,'15:38:00'),
+  (21,1,10,'23:19:00'),
+  (22,4,11,'17:39:00'),
+  (23,1,11,'19:05:00'),
+  (24,3,11,'19:51:00');
 
 insert into trip_train (trip_id,embark_stop_id,disembark_stop_id) values
     (1,3,4),
