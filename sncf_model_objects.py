@@ -5,13 +5,13 @@ class train_result(object):
 
 # holds id, capacity, price_per_km, arrival
 # How do I do multiple constructors
-    def __init__(self, train_id = None, arrival_station_id = None, arrival_time = None, departure_station_id = None, departire_time = None, distance = None):
+    def __init__(self, train_id = None, arrival_station_id = None, arrival_time = None, departure_station_id = None, departure_time = None, distance = None):
 
         self.train_id = train_id
         self.arrival_station_id = arrival_station_id
         self.arrival_time = arrival_time
         self.departure_station_id = departure_station_id
-        self.departire_time = departire_time
+        self.departure_time = departure_time
         self.distance = distance
 
     def __repr__(self):
@@ -25,6 +25,20 @@ class train_result(object):
             self.arrival_station_id = query_response_dict['stop1.station_id']
             self.arrival_time = query_response_dict['stop1.arrival_time']
             self.distance = query_response_dict['distance']
+
+    def get_readable_string(self):
+        var_dict_keys = vars(self).keys()
+
+        readable_string = "["
+
+        for key in var_dict_keys:
+            readable_string = readable_string + str(key) + ": " + str(vars(self)[key]) + ", "
+
+        readable_string = readable_string[:-3] + "]"
+
+        return readable_string
+
+
 
 
 

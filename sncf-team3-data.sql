@@ -5,6 +5,7 @@ insert into user (email, first_name, last_name, password) values
   ('xuhanwen97@gmail.com', 'Hanwen', 'Xu', 'is'),
   ('rubinjoshua4@gmail.com', 'Josh', 'Rubin', 'the'),
   ('daniellamichelle@gmail.com', 'Daniella', 'Nieves', 'best'),
+  ('1', 'Test', 'User', '1'),
   ('simpkins@cc.gatech.edu', 'Chris', 'Simpkins', 'class');
 
 insert into address (line1, line2, city, state, country, post_code) values

@@ -4,6 +4,13 @@ import requests
 import sys
 import pprint as pprint
 import sncf_queries
+import sncf_gui
+from datetime import datetime, date
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtSql import *
+
 
 # Creates the database using schema files with hard coded file names
 def setup_database():
@@ -44,9 +51,19 @@ def setup_database():
 
 
 
+
+
 if __name__ == "__main__":
     print("SNCF Simulator Started")
     setup_database()
     print("Database Setup Completed")
     print(sncf_queries.login_query('aharitsa3@gatech.edu', 'CS4400'))
+
+
+    app = QApplication(sys.argv)
+    main= sncf_gui.MainWindow()
+    main.show()
+    sys.exit(app.exec_())
+
+    print("hey")
 

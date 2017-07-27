@@ -112,7 +112,6 @@ def get_non_stop_train(city1, city2):
             temp_train_result = sncf_model_objects.train_result()
             temp_train_result.populate_train_result_with_nonstop_query_response_dict(train)
 
-            print(temp_train_result.train_id)
             list_of_train_dict.append(temp_train_result)
 
 
