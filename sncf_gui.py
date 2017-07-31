@@ -75,62 +75,12 @@ class MainWindow(QWidget):
         layout = QVBoxLayout()
         layout.addLayout(layout1)
         layout.addWidget(pic)
-
-        ######TEST
-        hbox1 = QHBoxLayout()
-        blank = QLabel("",self)
-        departure = QLabel("Departure",self)
-        arrival = QLabel("Arrival",self)
-
-        hbox1.addWidget(blank)
-        hbox1.addWidget(departure)
-        hbox1.addWidget(arrival)
-
-        hbox2 = QHBoxLayout()
-        train = QLabel("Train",self)
-        station1 = QLabel("Station",self)
-        time1 = QLabel("Time",self)
-        station2 = QLabel("Station",self)
-        time2 = QLabel("Time",self)
-
-        hbox2.addWidget(train)
-        hbox2.addWidget(station1)
-        hbox2.addWidget(time1)
-        hbox2.addWidget(station2)
-        hbox2.addWidget(time2)
-
-        text_boxes_hbox = QHBoxLayout()
-        text_boxes_hbox.setContentsMargins(0,0,0,0)
-        text_boxes_hbox.setSpacing(0)
-
-        #TODO - Turn off editing in these QTextEdits
-        text_box1 = QTextEdit()
-        text_box2 = QTextEdit()
-        text_box3 = QTextEdit()
-        text_box4 = QTextEdit()
-        text_box5 = QTextEdit()
-
-        text_boxes_hbox.addWidget(text_box1)
-        text_boxes_hbox.addWidget(text_box2)
-        text_boxes_hbox.addWidget(text_box3)
-        text_boxes_hbox.addWidget(text_box4)
-        text_boxes_hbox.addWidget(text_box5)
-
-        vbox = QVBoxLayout()
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-        vbox.addLayout(text_boxes_hbox)
-
-
-        layout.addLayout(vbox)
-        #####TEST
-
         self.setLayout(layout)
 
         self.stack1.setLayout(layout)
 
     def register(self):
-        self.setWindowTitle("Create Customer")
+        self.setWindowTitle("Create Customer Account")
 
         first = QLabel("* First Name",self)
         last = QLabel("* Last Name",self)
@@ -139,7 +89,7 @@ class MainWindow(QWidget):
         password = QLabel("* Password",self)
         confirm_password = QLabel("* Confirm Password",self)
         address1 = QLabel("* Address Line 1",self)
-        address2 = QLabel("  Address Line 2",self)
+        address2 = QLabel("   Address Line 2",self)
         city = QLabel("* City",self)
         state = QLabel("* State",self)
         postal = QLabel("* Postal Code",self)
@@ -164,21 +114,37 @@ class MainWindow(QWidget):
         self.cc_num = QLineEdit(self)
         self.ccv = QLineEdit(self)
 
-        datelist = [str(num) for num in range(1,32)]
+        datelist = []
+        for num in range(1,32):
+            if len(str(num)) == 1:
+                datelist.append("0" + str(num))
+            else:
+                datelist.append(str(num))
+
 
         self.birthdate = QComboBox(self)
         self.birthdate.addItem("DD")
         for date in datelist:
             self.birthdate.addItem(date)
 
-        monthlist = [str(num) for num in range(1,13)]
+        monthlist = []
+        for num in range(1,13):
+            if len(str(num)) == 1:
+                monthlist.append("0" + str(num))
+            else:
+                monthlist.append(str(num))
 
         self.birthmonth = QComboBox(self)
         self.birthmonth.addItem("MM")
         for month in monthlist:
             self.birthmonth.addItem(month)
 
-        yearlist = [str(num) for num in range(1925,2035)]
+        yearlist = []
+        for num in range(1925,2035):
+            if len(str(num)) == 1:
+                yearlist.append("0" + str(num))
+            else:
+                yearlist.append(str(num))
 
         self.birthyear = QComboBox(self)
         self.birthyear.addItem("YYYY")
@@ -198,8 +164,8 @@ class MainWindow(QWidget):
         country_list = ["USA", "Belgium", "Czech Republic", "France", "Germany", "Italy", "Ireland", "Luxembourg", "Netherlands", "Portugal", "Spain", "Switzerland", "United Kingdom"]
 
         self.countries = QComboBox(self)
-        self.countries.addItem("Country")
-        self.countries.addItem("----")
+        #self.countries.addItem("Country")
+        #self.countries.addItem("----")
         for country_item in country_list:
             self.countries.addItem(country_item)
 
@@ -319,26 +285,51 @@ class MainWindow(QWidget):
         elif len(self.ccv.text()) != 3 or len(self.cc_num.text()) != 16:
             error = QMessageBox.critical(self, "Invalid Registration","Please check your credit card information")
         else:
-            cur.execute('insert into user (email, password, first_name, last_name) values (self.email.text(), self.password.text(), self.first.text(), self.last.text())')
+            conn = pymysql.connect(host = 'localhost',
+                             user = 'root',
+                             password = '',
+                             db = 'sncf_team3',
+                             cursorclass = pymysql.cursors.DictCursor)
+
+            try:
+                #insert into user, address and customer tables
+                with conn.cursor() as cur:
+                    insert_user_sql = "insert into user (email, password, first_name, last_name) values (%s, %s, %s, %s)"
+                    insert_user_data = (self.email.text(), self.password.text(), self.first.text(), self.last.text())
+                    cur.execute(insert_user_sql, insert_user_data)
+                    conn.commit()
+                    userid = cur.lastrowid
+
+                    insert_address_sql = "insert into address (line1, line2, city, state, post_code, country) values (%s, %s, %s, %s, %s, %s)"
+                    insert_address_data = (self.address1.text(), self.address2.text(), self.city.text(), self.state.text(), self.postal.text(), self.countries.currentText())
+                    cur.execute(insert_address_sql, insert_address_data)
+                    conn.commit()
+
+                    birthday = (self.birthyear.currentText() + '-' + self.birthmonth.currentText() + '-' + self.birthdate.currentText())
+                    formatter = "%Y-%m-%d"
+                    bday = datetime.strptime(birthday, formatter).date()
+                    exp = self.cc_exp_year.currentText() + '-' + self.cc_exp_month.currentText()
+                    formatting = '%Y-%m'
+                    expire = datetime.strptime(exp, formatting).date()
+
+                    addid = cur.lastrowid
+
+                    insert_customer_sql = "insert into customer (user_id, address_id, birthdate, credit_card_no, credit_card_expiry) values (%s, %s, %s, %s, %s)"
+                    insert_customer_data = (userid, addid, bday, self.cc_num.text(), expire)
+
+                    cur.execute(insert_customer_sql, insert_customer_data)
+                    conn.commit()
+
+                success = QMessageBox.information(self, "Login Successful!", "Login Successful!")
+
+                self.change_to_search_trips()
+            finally:
+                conn.commit()
+                conn.close()
+
             self.conn.commit()
-            userid = cur.lastrowid
 
-            cur.execute('insert into address (line1, line2, city, state, post_code, country) values (self.address1.text(), self.address2.text(), self.city.text(), self.state.text(), self.postal.text(), self.countries.text())')
-            self.conn.commit()
-
-            birthday = (self.birthyear.currentText() + '-' + self.birthmonth.currentText() + '-' + self.birthdate.currentText())
-            formatter = "%Y-%B-%d"
-            bday = datetime.strptime(birthday, formatter).date()
-            exp = self.cc_exp_year.currentText() + '-' + self.cc_exp_month.currentText() + '-' + '01'
-            formatting = '%Y-%m-%d'
-            expire = datetime.strptime(exp, formatting).date()
-
-            addid = cur.lastrowid
-
-            cur.excute('insert into customer (user_id, address_id, birthdate, credit_card_no, credit_card_expiry) values (userid, addid, bday, self.cc_num.text(), expire)')
-            self.conn.commit()
-
-            self.changeDisplayreg
+            self.change_to_search_trips
 
             self.first.setEnabled(True)
             self.last.setEnabled(True)
@@ -363,12 +354,27 @@ class MainWindow(QWidget):
 
             train_result_list = sncf_queries.get_non_stop_train(self.start_city_drop_down.currentText(), self.end_city_drop_down.currentText())
 
-            train_result_text = ""
+            if train_result_list == None:
+                msg = QMessageBox.critical(self,"Invalid Train Route","Train route" + "\n" + "does not exist")
+            else:
+                text_box1 = ""
+                text_box2 = ""
+                text_box3 = ""
+                text_box4 = ""
+                text_box5 = ""
 
-            for train_result in train_result_list:
-                train_result_text = train_result_text + train_result.get_readable_string() + "\n"
+                for train_result in train_result_list:
+                    text_box1 = text_box1 + str(train_result.train_id) + "\n"
+                    text_box2 = text_box2 + str(train_result.departure_station_id) + "\n"
+                    text_box3 = text_box3 + str(train_result.departure_time) + "\n"
+                    text_box4 = text_box4 + str(train_result.arrival_station_id) + "\n"
+                    text_box5 = text_box5 + str(train_result.arrival_time) + "\n"
 
-            self.search_results_text_edit.setText(train_result_text)
+                self.text_box1.setText(text_box1)
+                self.text_box2.setText(text_box2)
+                self.text_box3.setText(text_box3)
+                self.text_box4.setText(text_box4)
+                self.text_box5.setText(text_box5)
 
         else:
             error = QMessageBox.information(self, "Form Not Complete", "Please fill in all required fields")
@@ -377,27 +383,28 @@ class MainWindow(QWidget):
         self.setWindowTitle("Search Trips")
 
         _from = QLabel("From:",self)
-        date1 = QLabel("Date:",self)
-        time1 = QLabel("Time:",self)
+        ##date1 = QLabel("Date:",self)
+        ##time1 = QLabel("Time:",self)
         to = QLabel("To:",self)
-        date2 = QLabel("Date:",self)
-        time2 = QLabel("Time:",self)
+        ##date2 = QLabel("Date:",self)
+        ##time2 = QLabel("Time:",self)
 
         self.start_city_drop_down = QComboBox(self)
-        self.start_city_drop_down.addItem("Paris")
-
         self.end_city_drop_down = QComboBox(self)
-        self.end_city_drop_down.addItem("Metz")
 
-        self.date1 = QLineEdit(self)
-        self.time1 = QLineEdit(self)
-        self.date2 = QLineEdit(self)
-        self.time2 = QLineEdit(self)
+        for city in sncf_queries.get_city_list():
+            self.start_city_drop_down.addItem(city.city_name)
+            self.end_city_drop_down.addItem(city.city_name)
 
-        self.date1.setText('')
-        self.time1.setText('')
-        self.date2.setText('')
-        self.time2.setText('')
+        # self.date1 = QLineEdit(self)
+        # self.time1 = QLineEdit(self)
+        # self.date2 = QLineEdit(self)
+        # self.time2 = QLineEdit(self)
+
+        # self.date1.setText('YYYY-MM-DD')
+        # self.time1.setText('HH:MM')
+        # self.date2.setText('YYYY-MM-DD')
+        # self.time2.setText('HH:MM')
 
         cancel = QPushButton("Cancel",self)
         cancel.clicked.connect(self.change_to_login)
@@ -408,13 +415,13 @@ class MainWindow(QWidget):
 
         flayout1 = QFormLayout()
         flayout1.addRow(_from, self.start_city_drop_down)
-        flayout1.addRow(date1, self.date1)
-        flayout1.addRow(time1, self.time1)
+        ##flayout1.addRow(date1, self.date1)
+        ##flayout1.addRow(time1, self.time1)
 
         flayout2 = QFormLayout()
         flayout2.addRow(to, self.end_city_drop_down)
-        flayout2.addRow(date2, self.date2)
-        flayout2.addRow(time2, self.time2)
+        ##flayout2.addRow(date2, self.date2)
+        ##flayout2.addRow(time2, self.time2)
 
         buttons = QHBoxLayout()
         buttons.addWidget(cancel)
@@ -425,63 +432,89 @@ class MainWindow(QWidget):
         layout1.addLayout(flayout1)
         layout1.addLayout(flayout2)
 
-        direction = QLabel("Fill out the following information. Fields marked with * are required.")
+        direction = QLabel("Where do you want to go?")
 
-        self.search_results_text_edit = QTextEdit( "This is some test data" )
+        hbox1 = QHBoxLayout()
+        blank = QLabel("",self)
+        departure = QLabel("Departure",self)
+        arrival = QLabel("Arrival",self)
+
+        hbox1.addWidget(blank)
+        hbox1.addWidget(departure)
+        hbox1.addWidget(arrival)
+
+        hbox2 = QHBoxLayout()
+        train = QLabel("Train",self)
+        station1 = QLabel("Station",self)
+        time1 = QLabel("Time",self)
+        station2 = QLabel("Station",self)
+        time2 = QLabel("Time",self)
+
+        hbox2.addWidget(train)
+        hbox2.addWidget(station1)
+        hbox2.addWidget(time1)
+        hbox2.addWidget(station2)
+        hbox2.addWidget(time2)
+
+        text_boxes_hbox = QHBoxLayout()
+        text_boxes_hbox.setContentsMargins(0,0,0,0)
+        text_boxes_hbox.setSpacing(0)
+
+        self.text_box1 = QTextEdit()
+        self.text_box1.setDisabled(True)
+        self.text_box2 = QTextEdit()
+        self.text_box2.setDisabled(True)
+        self.text_box3 = QTextEdit()
+        self.text_box3.setDisabled(True)
+        self.text_box4 = QTextEdit()
+        self.text_box4.setDisabled(True)
+        self.text_box5 = QTextEdit()
+        self.text_box5.setDisabled(True)
+
+        text_boxes_hbox.addWidget(self.text_box1)
+        text_boxes_hbox.addWidget(self.text_box2)
+        text_boxes_hbox.addWidget(self.text_box3)
+        text_boxes_hbox.addWidget(self.text_box4)
+        text_boxes_hbox.addWidget(self.text_box5)
+
+        selection = QHBoxLayout()
+        blank1 = QLabel("",self)
+        blank2 = QLabel("",self)
+        choice = QLabel("Train ID Selection",self)
+        self.choice = QLineEdit(self)
+        self.choice.setText("")
+
+        selection.addWidget(blank1)
+        selection.addWidget(blank2)
+        selection.addWidget(choice)
+        selection.addWidget(self.choice)
+
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(text_boxes_hbox)
+        vbox.addLayout(selection)
 
         layout2 = QVBoxLayout()
         layout2.addWidget(direction)
         layout2.addLayout(layout1)
-        layout2.addWidget(self.search_results_text_edit)
+        layout2.addLayout(vbox)
         layout2.addLayout(buttons)
 
         self.setLayout(layout2)
         self.stack3.setLayout(layout2)
 
     def addPassenger():
-        print("Add Passenger")
+        pass
 
     def add_booking():
-        print("Add Passenger")
+        pass
 
     def book_trip(self):
-        self.setWindowTitle("Book a Trip")
-
-        self.lastname = QLabel("Last Name",self)
-        self.firstname = QLabel("First Name",self)
-        self.dob = QLabel("Birthdate",self)
-
-        self.cancel = QPushButton("Cancel",self)
-        self.cancel.clicked.connect(self.change_to_search_trips)
-
-        self.add_passenger = QPushButton("Add Passenger",self)
-        self.add_passenger.clicked.connect(self.addPassenger)
-
-        self.book = QPushButton("Book",self)
-        self.book.clicked.connect(self.add_booking)
-
-        direction = QLabel("Passengers:")
-
-        book_form = QHBoxLayout()
-        book_form.addWidget(self.lastname)
-        book_form.addWidget(self.firstname)
-        book_form.addWidget(self.book)
-
-        buttons = QHBoxLayout()
-        buttons.addWidget(self.cancel)
-        buttons.addWidget(self.add_passenger)
-        buttons.addWidget(self.book)
-
-        book_trip_layout = QVBoxLayout()
-        book_trip_layout.addWidget(direction)
-        book_trip_layout.addLayout(book_form)
-        book_trip_layout.addLayout(buttons)
-
-        self.setLayout(book_trip_layout)
-        self.stack4.setLayout(book_trip_layout)
+        pass
 
     def customerDashboard(self):
-        temp = []
+        pass
 
     def start_gui(self):
         import sys
@@ -503,4 +536,3 @@ if __name__ == "__main__":
     main.show()
     sys.exit(app.exec_())
     main(sys.argv)
-

@@ -108,3 +108,20 @@ create table trip_train (
     on update cascade
     on delete restrict
 );
+
+
+-- Testing for adding cs2316 project into it
+create table route (
+  route_id int auto_increment primary key,
+  start_city_address_id int,
+  end_city_address_id int,
+  distance decimal(6,2),
+  duration int,
+
+    foreign key (start_city_address_id) references address(address_id)
+        on update cascade
+        on delete restrict,
+    foreign key (end_city_address_id) references address(address_id)
+        on update cascade
+        on delete restrict
+);

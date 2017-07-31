@@ -75,6 +75,41 @@ def get_customers():
         return(customer_dict)
 
 
+# returns a list of cities from the distance databse *****FIX LATER
+# INTEGRATE BETTER
+def get_city_list():
+    db_connection = pymysql.connect(host = 'localhost',
+                             user = 'root',
+                             password = '',
+                             db = 'sncf_team3',
+                             cursorclass = pymysql.cursors.DictCursor)
+
+    city_dict = {};
+
+    try:
+        # Set up the databse with schema from schema file
+        with db_connection.cursor() as db_cursor:
+            # Read a single record
+            sql = "select name, address_id from station;"
+            db_cursor.execute(sql)
+            city_dicts = db_cursor.fetchall()
+
+    finally:
+        db_connection.close()
+
+    city_list = []
+
+    if len(city_dicts) != 0:
+        temp_city = sncf_model_objects.City()
+
+        for city_dict in city_dicts:
+            temp_city = sncf_model_objects.City()
+            temp_city.populate_city_with_station_query_response_dict(city_dict)
+            city_list.append(temp_city)
+
+    return city_list
+
+
 '''
 Returns a list of non-stop trains from one city to another
 input:

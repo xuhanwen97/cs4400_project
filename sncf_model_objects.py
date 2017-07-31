@@ -64,5 +64,17 @@ class user(object):
 
         print(self.last_name)
 
+class City(object):
 
+    def __init__(self, address_id = None, city_name = None):
+        self.address_id = address_id
+        self.city_name = city_name
+
+    def __repr__(self):
+        return pprint.pformat(vars(self))
+
+    def populate_city_with_station_query_response_dict(self, query_response_dict):
+
+        self.address_id = query_response_dict['address_id']
+        self.city_name = query_response_dict['name']
 

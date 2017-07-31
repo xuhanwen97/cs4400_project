@@ -5,6 +5,7 @@ import sys
 import pprint as pprint
 import sncf_queries
 import sncf_gui
+import sncf_web_requests
 from datetime import datetime, date
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -56,14 +57,14 @@ def setup_database():
 if __name__ == "__main__":
     print("SNCF Simulator Started")
     setup_database()
+
+    #sncf_web_requests.populate_db_with_routes()
+
     print("Database Setup Completed")
-    print(sncf_queries.login_query('aharitsa3@gatech.edu', 'CS4400'))
 
 
     app = QApplication(sys.argv)
     main= sncf_gui.MainWindow()
     main.show()
     sys.exit(app.exec_())
-
-    print("hey")
 
