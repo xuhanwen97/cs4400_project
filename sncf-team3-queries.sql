@@ -17,7 +17,7 @@ select * from (select stop.station_id, stop.train_id, stop.departure_time, stop2
 select user_id into @new_customer from user where first_name = 'Josh' and last_name = 'Rubin';
 insert into trip (customer_id, price) values (@new_customer, 100.00);
 set @trip_id = last_insert_id();
-insert into passenger (first_name, last_name, birthdate, trip_id) values 
+insert into passenger (first_name, last_name, birthdate, trip_id) values
 	('Scooby','Doo','1969-10-13',@trip_id),
 	('Josh','Rubin','1997-01-14',@trip_id);
 select station_id into @Metz from station where name = 'Metz';

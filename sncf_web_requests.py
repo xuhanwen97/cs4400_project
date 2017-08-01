@@ -28,7 +28,10 @@ def get_city_id(city_name):
         with db_connection.cursor() as db_cursor:
             select_city_id_sql = "select address_id from station where name = %s"
             db_cursor.execute(select_city_id_sql, city_name)
-            return(db_cursor.fetchone()['city_id'])
+
+            response = db_cursor.fetchone()
+
+            return(response['address_id'])
     finally:
         db_connection.close()
 
@@ -62,10 +65,15 @@ def insert_route_using_dict(response_dict):
 
 
 # returns a dictionary containing the google distance matrix api
-# response data from city1 to city2
+# response data from city1 to city2 city names
 def make_distance_request(city1, city2):
     apikey = "AIzaSyCseiSYJM8q6Xcv6arZD_M3nIv1wSwbxtQ"
     distance_url = "https://maps.googleapis.com/maps/api/distancematrix/json"
+
+    if city1 == 'Aix':
+        city1 = city1 + ', France'
+    elif city2 == 'Aix':
+        city2 = city2 + ', France'
 
 
     myparams = {'origins': city1,
@@ -83,18 +91,26 @@ def make_distance_request(city1, city2):
     origin_city = response['origin_addresses'][0].split(',')[0]
     destination_city = response['destination_addresses'][0].split(',')[0]
 
-    km_distance = response['rows'][0]['elements'][0]['distance']['text']
-    km_distance = km_distance.split()[0].replace(',','')
-    km_distance = int(km_distance)
+    elements = response['rows'][0]['elements'][0]
 
-    km_distance_id = response['rows'][0]['elements'][0]['distance']['value']
+    if 'distance' in elements:
+        km_distance = response['rows'][0]['elements'][0]['distance']['text']
+        km_distance = km_distance.split()[0].replace(',','')
+        km_distance = int(km_distance)
 
-    trip_duration = response['rows'][0]['elements'][0]['duration']['text']
-    trip_duration_seconds = response['rows'][0]['elements'][0]['duration']['value']
+        km_distance_id = response['rows'][0]['elements'][0]['distance']['value']
+
+        trip_duration = response['rows'][0]['elements'][0]['duration']['text']
+        trip_duration_seconds = response['rows'][0]['elements'][0]['duration']['value']
+    else:
+        km_distance = None
+        km_distance_id = None
+        trip_duration = None
+        trip_duration_seconds = None
 
     trip_info = {}
     trip_info['origin_city'] = origin_city.split()
-    trip_info['destination_city'] = destination_city
+    trip_info['destination_city'] = destination_city.split()
     trip_info['km_distance'] = km_distance
     trip_info['distance_id'] = km_distance_id
     trip_info['trip_duration'] = trip_duration
@@ -110,9 +126,15 @@ def populate_db_with_routes():
 
     city_combos = get_city_combos()
 
+    print(city_combos)
+
     for city_combo in city_combos:
         if count < api_request_count:
-            city_combo_response = make_distance_request(city_combo[0], city_combo[1])
+            start_city_address_id = city_combo[0].city_name
+            end_city_address_id = city_combo[1].city_name
+
+
+            city_combo_response = make_distance_request(start_city_address_id, end_city_address_id)
             print(city_combo_response)
             insert_route_using_dict(city_combo_response)
             count += 1
@@ -122,7 +144,7 @@ def get_distance(city1_id, city2_id):
     db_connection = pymysql.connect(host = 'localhost',
                              user = 'root',
                              password = '',
-                             db = 'distance',
+                             db = 'sncf_team3',
                              cursorclass = pymysql.cursors.DictCursor)
     try:
         with db_connection.cursor() as db_cursor:

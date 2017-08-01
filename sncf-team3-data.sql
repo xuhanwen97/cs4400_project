@@ -29,7 +29,8 @@ insert into customer (user_id, address_id, birthdate, credit_card_no, credit_car
     (2, 11, '1997-01-01', 3833869948671938, '1992-07-12'),
     (1, 12, '1920-07-04', 9499603839590682, '1940-03-18'),
     (3, 13, '1969-11-11', 1023885039687923, '1960-06-23'),
-    (4, 14, '2012-12-24', 4920386749182940, '1923-02-19');
+    (4, 14, '2012-12-24', 4920386749182940, '1923-02-19'),
+    (5, 14, '2012-11-24', 1922939938484848, '1923-03-19');
 
 insert into trip (customer_id, price) values
   (1,100.00),
@@ -71,7 +72,8 @@ insert into train (train_id, capacity, price_per_km) values
   (8,500, 0.1),
   (9,500, 0.1),
   (10,500, 0.1),
-  (11,500, 0.1);
+  (11,500, 0.1),
+  (12,500, 0.1);
 
 insert into stop (stop_id, station_id,train_id,arrival_time,departure_time,distance) values
   (1,1,1,'05:16:00','05:26:00',100),
@@ -99,7 +101,9 @@ insert into stop (stop_id, station_id,train_id,arrival_time,departure_time,dista
   (23,4,10,'17:29:00','17:39:00',100),
   (24,1,10,'19:05:00','19:15:00',100),
   (25,3,10,'19:51:00','20:01:00',100),
-  (26,6,1, '06:26:00','06:36:00',100);
+  (26,6,12,'11:45:00','11:56:00',100),
+  (27,2,12,'12:02:00','12:12:00',100);
+
 
 insert into trip_train (trip_id,embark_stop_id,disembark_stop_id) values
     (1,3,4),

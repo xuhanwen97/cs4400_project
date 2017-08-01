@@ -9,6 +9,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtSql import *
 import sncf_queries
 import sncf_model_objects
+from datetime import datetime
 
 
 class MainWindow(QWidget):
@@ -42,6 +43,9 @@ class MainWindow(QWidget):
         self.setLayout(hbox)
         self.setWindowTitle("SNCF Login")
 
+
+    def show_critical_error(self, title, message):
+        error = QMessageBox.critical(self, title, message)
 
     def login_window(self):
         self.setWindowTitle("SNCF Login")
@@ -256,7 +260,38 @@ class MainWindow(QWidget):
 
     def change_to_book_trips(self):
         self.setWindowTitle("Book Trips")
-        self.changeDisplayregToIndex(3)
+
+        self.trip_passengers = []
+
+        index = int(self.train_id_choice.text()) - 1
+
+        self.trip_view_lastname.setText("")
+        self.trip_view_firstname.setText("")
+        self.trip_view_dob.setText("")
+
+        if index < len(self.train_result_list):
+            self.train_result_selected = self.train_result_list[index]
+
+            if self.train_result_selected:
+                if self.train_result_selected.is_multi_legged:
+                    train_details_string = "Train Details:"
+                    train_details_string = train_details_string + " Train Numbers: " + str(self.train_result_selected.train1_id) + ", " + str(self.train_result_selected.train2_id)
+                    train_details_string = train_details_string + ", Departure City: " + sncf_queries.get_city_name(self.train_result_selected.departure_station_id)
+                    train_details_string = train_details_string + ", Intermediate City: " + sncf_queries.get_city_name(self.train_result_selected.inter_station_id)
+                    train_details_string = train_details_string + ", Arrival City: " + sncf_queries.get_city_name(self.train_result_selected.arrival_station_id)
+                    train_details_string = train_details_string + ", Departure Time: " + str(self.train_result_selected.departure_time)
+                else:
+                    train_details_string = "Train Details:"
+                    train_details_string = train_details_string + " Train Numbers: " + str(self.train_result_selected.train1_id)
+                    train_details_string = train_details_string + ", Departure City: " + sncf_queries.get_city_name(self.train_result_selected.departure_station_id)
+                    train_details_string = train_details_string + ", Arrival City: " + sncf_queries.get_city_name(self.train_result_selected.arrival_station_id)
+                    train_details_string = train_details_string + ", Departure Time: " + str(self.train_result_selected.departure_time)
+
+                self.train_details_label.setText(train_details_string)
+            self.changeDisplayregToIndex(3)
+        else:
+            error = QMessageBox.critical(self, "Invalid Train Number", "Please enter a correct train number")
+
 
     def login(self):
 
@@ -268,6 +303,7 @@ class MainWindow(QWidget):
             # if the response from the login_query function is a user object, then login was successful. Otherwise it failed
             if type(temp_user) is sncf_model_objects.user:
                 self.change_to_search_trips()
+                self.current_user = temp_user
             elif type(temp_user) is str:
                 error = QMessageBox.critical(self,"Invalid Login","Invalid Email or Password")
 
@@ -277,7 +313,7 @@ class MainWindow(QWidget):
     def addCustomer(self):
         curs = self.conn.cursor()
         if len(self.first.text()) == 0 or len(self.last.text()) == 0 or len(self.email.text()) == 0 or len(self.confirm_email.text()) == 0 or len(self.password.text()) == 0 or len(self.confirm_password.text()) == 0 or len(self.address1.text()) == 0 or len(self.city.text()) == 0 or len(self.state.text()) == 0 or len(self.postal.text()) == 0 or len(self.cc_num.text()) == 0 or len(self.ccv.text()) == 0:
-            error = QMessageBox.critical(self, "Invalid Registration","Please complete all required fields")
+            error = QMessageBox.critical(self, "Invalid Registration","Please complete all inrequired fields")
         elif self.email.text() != self.confirm_email.text():
             error = QMessageBox.critical(self, "Invalid Registration","Emails do not match")
         elif self.password.text() != self.confirm_password.text():
@@ -346,15 +382,94 @@ class MainWindow(QWidget):
             self.ccv.setEnabled(True)
 
     def book_trip(self):
-        print("Book")
+
+        train_details_text = "Train Details: "
+        self.train_details_label = QLabel(train_details_text)
+        lastname = QLabel("Last Name",self)
+        firstname = QLabel("First Name",self)
+        dob = QLabel("Birthdate",self)
+
+        cancel = QPushButton("Cancel",self)
+        cancel.clicked.connect(self.change_to_search_trips)
+        addPassenger = QPushButton("Add Passenger",self)
+        addPassenger.clicked.connect(self.add_passenger)
+        book = QPushButton("Book",self)
+        book.clicked.connect(self.add_booking)
+
+        grid1 = QGridLayout()
+        grid1.setSpacing(10)
+        grid1.addWidget(self.train_details_label, 1, 0)
+
+        grid3 = QGridLayout()
+        grid3.setSpacing(10)
+        grid3.addWidget(lastname, 2, 0)
+        grid3.addWidget(firstname, 2, 1)
+        grid3.addWidget(dob, 2, 2)
+
+        grid2 = QGridLayout()
+        grid2.addWidget(cancel, 8, 0)
+        grid2.addWidget(addPassenger, 8, 1)
+        grid2.addWidget(book, 8, 2)
+
+        text_box_layout = QHBoxLayout()
+        text_box_layout.setContentsMargins(0,0,0,0)
+        text_box_layout.setSpacing(0)
+
+        self.trip_view_lastname = QTextEdit()
+        self.trip_view_lastname.setDisabled(True)
+        self.trip_view_firstname = QTextEdit()
+        self.trip_view_firstname.setDisabled(True)
+        self.trip_view_dob = QTextEdit()
+        self.trip_view_dob.setDisabled(True)
+
+        text_box_layout.addWidget(self.trip_view_lastname)
+        text_box_layout.addWidget(self.trip_view_firstname)
+        text_box_layout.addWidget(self.trip_view_dob)
+
+        grid4 = QGridLayout()
+        grid4.setSpacing(10)
+
+        self.new_passenger_last_name_text= QLineEdit(self)
+        self.new_passenger_first_name_text= QLineEdit(self)
+        self.new_passenger_birthdate_text= QLineEdit(self)
+
+        self.new_passenger_last_name_label = QLabel("Last Name",self)
+        self.new_passenger_first_name_label = QLabel("First Name",self)
+        self.new_passenger_birthdate_label = QLabel("Birthdate (mm-dd-yyyy)",self)
+
+        grid4.addWidget(self.new_passenger_last_name_label, 0, 0)
+        grid4.addWidget(self.new_passenger_first_name_label, 0, 1)
+        grid4.addWidget(self.new_passenger_birthdate_label, 0, 2)
+
+        grid4.addWidget(self.new_passenger_last_name_text, 1, 0)
+        grid4.addWidget(self.new_passenger_first_name_text, 1, 1)
+        grid4.addWidget(self.new_passenger_birthdate_text, 1, 2)
+
+        book_screen = QVBoxLayout()
+        book_screen.addLayout(grid1)
+        book_screen.addLayout(grid3)
+        book_screen.addLayout(text_box_layout)
+        book_screen.addLayout(grid4)
+        book_screen.addLayout(grid2)
+
+        self.setLayout(book_screen)
+        self.setGeometry(400, 300, 500, 300)
+        self.setWindowTitle('Book Trip')
+        self.stack4.setLayout(book_screen)
+
 
     def search_results(self):
+        ##### ADD MULTI LEGGED SEARCH TO THIS
 
         if len(self.start_city_drop_down.currentText().strip()) != 0 and len(self.end_city_drop_down.currentText().strip()) != 0:
 
-            train_result_list = sncf_queries.get_non_stop_train(self.start_city_drop_down.currentText(), self.end_city_drop_down.currentText())
+            non_stop_result_list = sncf_queries.get_non_stop_train(self.start_city_drop_down.currentText(), self.end_city_drop_down.currentText())
 
-            if train_result_list == None:
+            one_stop_result_list = (sncf_queries.get_one_stop_train(self.start_city_drop_down.currentText(), self.end_city_drop_down.currentText()))
+
+            self.train_result_list = non_stop_result_list + one_stop_result_list
+
+            if self.train_result_list == None:
                 msg = QMessageBox.critical(self,"Invalid Train Route","Train route" + "\n" + "does not exist")
             else:
                 text_box1 = ""
@@ -363,8 +478,14 @@ class MainWindow(QWidget):
                 text_box4 = ""
                 text_box5 = ""
 
-                for train_result in train_result_list:
-                    text_box1 = text_box1 + str(train_result.train_id) + "\n"
+                # Builds the strings for the non-stop train routes
+                for train_result in self.train_result_list:
+                    if train_result.is_multi_legged:
+                        text_box1 = text_box1 + str(self.train_result_list.index(train_result) + 1) + "*\n"
+                    else:
+                        text_box1 = text_box1 + str(self.train_result_list.index(train_result) + 1) + "\n"
+
+
                     text_box2 = text_box2 + str(train_result.departure_station_id) + "\n"
                     text_box3 = text_box3 + str(train_result.departure_time) + "\n"
                     text_box4 = text_box4 + str(train_result.arrival_station_id) + "\n"
@@ -444,7 +565,7 @@ class MainWindow(QWidget):
         hbox1.addWidget(arrival)
 
         hbox2 = QHBoxLayout()
-        train = QLabel("Train",self)
+        train = QLabel("Train Choice",self)
         station1 = QLabel("Station",self)
         time1 = QLabel("Time",self)
         station2 = QLabel("Station",self)
@@ -478,16 +599,18 @@ class MainWindow(QWidget):
         text_boxes_hbox.addWidget(self.text_box5)
 
         selection = QHBoxLayout()
+        clarification = QLabel("Train choice that have * next to them are multi legged")
         blank1 = QLabel("",self)
         blank2 = QLabel("",self)
-        choice = QLabel("Train ID Selection",self)
-        self.choice = QLineEdit(self)
-        self.choice.setText("")
+        choice = QLabel("Train Choice Selection",self)
+        self.train_id_choice = QLineEdit(self)
+        self.train_id_choice.setText("")
 
+        selection.addWidget(clarification)
         selection.addWidget(blank1)
         selection.addWidget(blank2)
         selection.addWidget(choice)
-        selection.addWidget(self.choice)
+        selection.addWidget(self.train_id_choice)
 
         vbox = QVBoxLayout()
         vbox.addLayout(hbox1)
@@ -504,17 +627,43 @@ class MainWindow(QWidget):
         self.setLayout(layout2)
         self.stack3.setLayout(layout2)
 
-    def addPassenger():
-        pass
+    def add_passenger(self):
+        pass_first_name = self.new_passenger_first_name_text.text().strip()
+        pass_last_name = self.new_passenger_last_name_text.text().strip()
+        pass_birthdate = self.new_passenger_birthdate_text.text().strip()
+        if len(pass_first_name) == 0 and len(pass_last_name) == 0 and len(pass_birthdate) == 0:
+            self.show_critical_error("Empty Fields", "Please fill in all fields in right format")
+            return
 
-    def add_booking():
-        pass
+        temp_passenger = sncf_model_objects.temp_passenger()
 
-    def book_trip(self):
-        pass
+        try:
+            pass_birthdate_datetime = datetime.strptime(pass_birthdate, "%m-%d-%Y")
+        except ValueError:
+            self.show_critical_error("Date incorrect", "Enter date in the correct formula")
+            return
 
-    def customerDashboard(self):
-        pass
+        temp_passenger.populate_passenger(pass_first_name, pass_last_name, pass_birthdate_datetime)
+
+        self.trip_passengers.append(temp_passenger)
+
+        first_name_text = ''
+        last_name_text = ''
+        birthdate_text = ''
+
+        for passenger in self.trip_passengers:
+            first_name_text = first_name_text + passenger.first_name + "\n"
+            last_name_text = last_name_text + passenger.last_name + "\n"
+            birthdate_text = birthdate_text + datetime.strftime(passenger.birthdate, "%m-%d-%Y") + "\n"
+
+        self.trip_view_firstname.setText(first_name_text)
+        self.trip_view_lastname.setText(last_name_text)
+        self.trip_view_dob.setText(birthdate_text)
+
+    def add_booking(self):
+        sncf_queries.add_trip_with_customer_passengers(self.train_result_selected, self.current_user, self.trip_passengers)
+        self.change_to_search_trips()
+        self.show_critical_error("Booking successful!", "Booked successfully")
 
     def start_gui(self):
         import sys

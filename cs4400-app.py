@@ -108,7 +108,7 @@ class MainWindow(QWidget):
         for date in datelist:
             self.birthdate.addItem(date)
 
-        monthlist = [str(num) for num in range(1,13)]   
+        monthlist = [str(num) for num in range(1,13)]
 
         self.birthmonth = QComboBox(self)
         self.birthmonth.addItem("MM")
@@ -125,7 +125,7 @@ class MainWindow(QWidget):
         self.cc_exp_month = QComboBox(self)
         self.cc_exp_month.addItem("MM")
         for month in monthlist:
-            self.cc_exp_month.addItem(month) 
+            self.cc_exp_month.addItem(month)
 
         self.cc_exp_year = QComboBox(self)
         self.cc_exp_year.addItem("YYYY")
@@ -238,7 +238,7 @@ class MainWindow(QWidget):
             cur.execute('insert into user (email, password, first_name, last_name) values (self.email.text(), self.password.text(), self.first.text(), self.last.text())')
             self.conn.commit()
             userid = cur.lastrowid
-        
+
             cur.execute('insert into address (line1, line2, city, state, post_code, country) values (self.address1.text(), self.address2.text(), self.city.text(), self.state.text(), self.postal.text(), self.countries.text())')
             self.conn.commit()
 

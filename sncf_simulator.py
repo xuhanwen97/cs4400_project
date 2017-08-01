@@ -56,11 +56,12 @@ def setup_database():
 
 if __name__ == "__main__":
     print("SNCF Simulator Started")
-    setup_database()
 
     #sncf_web_requests.populate_db_with_routes()
+    setup_database()
 
     print("Database Setup Completed")
+
 
 
     app = QApplication(sys.argv)
